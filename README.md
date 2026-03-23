@@ -11,7 +11,8 @@
 | 文档 | 内容 |
 |------|------|
 | [README.md](README.md) | 总体调研概览 |
-| [huawei-ascend-analysis.md](huawei-ascend-analysis.md) | 华为昇腾方案详细分析 |
+| [huawei-ascend.md](huawei-ascend.md) | 华为昇腾方案详细分析 |
+| [domestic-gpu-analysis.md](domestic-gpu-analysis.md) | 国产 GPU 芯片方案分析 |
 
 ---
 

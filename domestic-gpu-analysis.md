@@ -59,11 +59,12 @@
 
 | 指标 | 数值 |
 |------|------|
-| W4A8 量化推理 | ✅ 同 GLM-5，>45 tokens/s |
+| W4A8 量化推理 | ✅ **单机 Atlas 800T A3 即可部署**，>45 tokens/s |
 | FP8/INT4 量化 | ✅ ~440GB，512GB 内充足 |
-| 长上下文优化 | ✅ CP 上下文并行策略 |
+| 长上下文优化 | ✅ CP 上下文并行 + Sparse Flash Attention |
+| 部署方式 | ✅ Docker + vLLM-Ascend，OpenAI API 兼容 |
 
-> 来源：[博客园部署指南](https://www.cnblogs.com/Robert.Yu/p/19636143)、[知乎 - 百度百舸×昆仑芯](https://zhuanlan.zhihu.com/p/2025289588118238948)
+> 来源：[博客园部署指南](https://www.cnblogs.com/Robert.Yu/p/19636143)、[CSDN 部署详解](https://ascendai.csdn.net/69d4c39172111d255bf7c852.html)、[openEuler 官方博客](https://www.openeuler.org/zh/blog/20260226-GLM-5/20260226-GLM-5.html)
 
 ### 2.3 核心优势
 

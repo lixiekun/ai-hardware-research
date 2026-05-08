@@ -2,7 +2,7 @@
 
 > **目标**：150万预算内部署大模型，支持50-100人使用
 >
-> **重点模型**：GLM-5.1 (744B)、MiniMax M2.5 (229B)、GLM-5 (744B)
+> **重点模型**：DeepSeek V4 (1.6T/284B)、Kimi K2.6 (1T)、MiniMax M2.7 (230B)、GLM-5.1 (744B)
 
 ---
 
@@ -33,9 +33,40 @@
 
 | 模型 | 总参数 | 激活参数 | 显存需求 | 来源 |
 |------|:------:|:--------:|:--------:|------|
+| **DeepSeek V4-Pro** | 1.6T | 49B | ~2.4TB (FP8) / ~700GB (INT4) | [DeepSeek官方](https://api-docs.deepseek.com/zh-cn/news/news260424) |
+| **DeepSeek V4-Flash** | 284B | 13B | ~22GB (INT4) / ~160GB (FP16) | [51CTO](https://www.51cto.com/aigc/11729.html) |
+| **Kimi K2.6** | 1T | 32B | ~2TB (FP16) / ~250GB (INT4) | [HuggingFace](https://huggingface.co/moonshotai/Kimi-K2.6) |
 | **GLM-5.1** | 744B | 40B | ~1.5TB (完整) / 440GB (FP8/INT4) | [智谱官方](https://docs.bigmodel.cn/cn/guide/models/text/glm-5.1) |
 | **GLM-5** | 744B | 40B | ~1.5TB (完整) / 241GB (2-bit) | [智谱官方](https://www.53ai.com/news/OpenSourceLLM/2026022239486.html) |
+| **MiniMax M2.7** | 230B | 10B | ~220GB (FP16) / ~50GB (INT4) | [MiniMax官方](https://www.minimaxi.com/news/minimax-m27-zh) |
 | **MiniMax M2.5** | 229B | 10B | ~220GB | [GitHub](https://github.com/MiniMax-AI/MiniMax-M2.5) |
+
+> **DeepSeek V4 新特性**（2026年4月24日发布）：
+> - 双版本发布：V4-Pro (1.6T/49B) 和 V4-Flash (284B/13B)
+> - 全系标配 **100万 token 超长上下文**
+> - V4-Pro 推理 FLOPs 仅为 V3.2 的 **27%**，KV 缓存降至 **10%**
+> - V4-Flash INT4 单卡 RTX 5090 即可部署（~22GB）
+> - 已开源，昇腾 910B 单机 8 卡可部署 V4-Flash
+>
+> 来源：[DeepSeek官方](https://api-docs.deepseek.com/zh-cn/news/news260424)、[知乎](https://zhuanlan.zhihu.com/p/2031132960632599659)
+
+> **Kimi K2.6 新特性**（2026年4月20日发布）：
+> - **1T 总参 / 32B 激活**，MoE 架构，15.5T tokens 训练
+> - SWE-Bench Pro **58.6%**（并列 GPT-5.5）
+> - 原生多模态智能体模型，长程编码能力突出
+> - 支持多天自主任务执行 + Agent Swarm
+> - 已开源，256K 上下文窗口
+>
+> 来源：[Kimi官方](https://www.kimi.com/ai-models/kimi-k2-6)、[MLQ.ai](https://mlq.ai/news/moonshot-ai-releases-kimi-k26-open-source-coding-model-with-autonomous-multi-day-task-execution/)
+
+> **MiniMax M2.7 新特性**（2026年3月18日发布）：
+> - **230B 总参 / 10B 激活**，MoE 架构，首个"自我进化"模型
+> - Agent Harness 体系让模型参与自身训练，承担 **30-50%** 研发工作量
+> - 编程与推理能力迈入第一梯队，与顶级模型比肩
+> - 已开源，SGLang Day-0 支持，GGUF 量化版已发布
+> - INT4 量化 ~50GB，双卡 RTX 4090 或单卡 RTX 6000 Ada 即可部署
+>
+> 来源：[MiniMax官方](https://www.minimaxi.com/news/minimax-m27-zh)、[腾讯云](https://cloud.tencent.com/developer/article/2653788)
 
 > **GLM-5.1 新特性**（2026年4月发布）：
 > - 编码能力暴涨，核心编码 **45.3 分**，达 Claude Opus 4.6 的 **94.6%**
@@ -101,17 +132,59 @@
 
 ## 三、预算可行性分析
 
-### 3.1 MiniMax M2.5 (需220GB显存)
+### 3.1 DeepSeek V4
+
+| 版本 / 精度 | 显存需求 | 150万预算 | 说明 |
+|:-----------:|:--------:|:---------:|------|
+| **V4-Flash INT4** | **~22GB** | ✅ **单卡即可** | RTX 5090 / 4090 单卡可跑 |
+| V4-Flash FP16 | ~160GB | ✅ 可行 | 2-4× 企业级 GPU |
+| **V4-Pro INT4** | **~700GB** | ✅ **H200 可行** | 8× H100/H200 |
+| V4-Pro FP8 | ~2.4TB | ❌ 需 500万+ | 16× H100 级别 |
+
+| 方案 (V4-Flash) | 显存 | 价格 | 结论 |
+|------|:----:|------|:----:|
+| **单卡 RTX 5090** | 32GB | ~2万 | ✅ INT4 可跑 |
+| **H20 8卡服务器** | 768GB | 100-140万 | ✅ FP16 也行 |
+| **Atlas 800 (8×910B)** | 512GB | 80-120万 | ✅ 已有部署方案 |
+
+| 方案 (V4-Pro INT4) | 显存 | 价格 | 结论 |
+|------|:----:|------|:----:|
+| **H200 8卡服务器** | **1128GB** | **150-230万** | ✅ **最佳性能** |
+| H20 8卡服务器 | 768GB | 100-140万 | ✅ 刚好够用 |
+| Atlas 800 (8×910B) | 512GB | 80-120万 | ⚠️ INT4 勉强 |
+
+### 3.2 Kimi K2.6 (1T总参 / 32B激活)
+
+| 版本 | 显存需求 | 150万预算 |
+|:----:|:--------:|:---------:|
+| INT4 量化 | ~250GB | ✅ 多方案可行 |
+| FP8 量化 | ~500GB | ✅ H200 可行 |
+| FP16 完整版 | ~2TB | ❌ 需 400万+ |
 
 | 方案 | 显存 | 价格 | 结论 |
 |------|:----:|------|:----:|
-| 4× RTX 6000 Ada | 384GB | ~80万 | ✅ |
+| **H200 8卡服务器** | **1128GB** | **150-230万** | ✅ **FP8 丝滑** |
+| H20 8卡服务器 | 768GB | 100-140万 | ✅ INT4 / FP8 可行 |
+| Atlas 800 (8×910B) | 512GB | 80-120万 | ⚠️ INT4 需适配 |
+| 4× RTX 6000 Ada | 384GB | ~80万 | ⚠️ INT4 勉强 |
+
+### 3.3 MiniMax M2.7 / M2.5 (230B / 229B)
+
+| 版本 | 显存需求 | 150万预算 |
+|:----:|:--------:|:---------:|
+| **M2.7 INT4 量化** | **~50GB** | ✅ **双卡 4090 即可** |
+| M2.7 / M2.5 FP16 | ~220GB | ✅ 可行 |
+| M2.7 200K 上下文 | 额外 ~48GB | ⚠️ 需更多显存 |
+
+| 方案 | 显存 | 价格 | 结论 |
+|------|:----:|------|:----:|
+| **2× RTX 4090 / 单卡 RTX 6000 Ada** | 48-96GB | ~5万 | ✅ **M2.7 INT4** |
+| 4× RTX 6000 Ada | 384GB | ~80万 | ✅ FP16 丝滑 |
 | **H200 8卡服务器** | **1128GB** | **150-230万** | ✅ **最佳性能** |
 | H20 8卡服务器 | 768GB | 100-140万 | ✅ |
-| ~~2× Mac Studio 512GB~~ | ~~1024GB~~ | ~~22万~~ | ❌ **已下架** |
 | Atlas 800 (8×910B) | 512GB | 80-120万 | ⚠️ 需适配 |
 
-### 3.2 GLM-5.1 / GLM-5
+### 3.4 GLM-5.1 / GLM-5
 
 | 版本 | 显存需求 | 150万预算 |
 |:----:|:--------:|:---------:|
@@ -120,14 +193,14 @@
 | FP8 量化 | ~640GB | ⚠️ 需 200万+ / H200 可行 |
 | 完整版 | ~1.5TB | ❌ 需 400万+ |
 
-### 3.3 并发估算
+### 并发估算
 
-| 配置 | 在线用户 | 高峰并发 |
-|------|:--------:|:--------:|
-| **8× H200** | **80-120人** | **30-50人** |
-| 8× H20/H800 | 50-80人 | 20-30人 |
-| **Atlas 800T A3 (8×910B) W4A8** | **50-80人** | **15-25人** |
-| 8× 昇腾910B | 40-60人 | 15-25人 |
+| 配置 | 在线用户 | 高峰并发 | 适用模型 |
+|------|:--------:|:--------:|----------|
+| **8× H200** | **80-120人** | **30-50人** | V4-Pro、K2.6、GLM-5.1、M2.7 全部 |
+| 8× H20/H800 | 50-80人 | 20-30人 | V4-Flash、K2.6 INT4、GLM-5.1、M2.7 |
+| **Atlas 800T A3 (8×910B)** | **50-80人** | **15-25人** | V4-Flash、GLM-5.1 W4A8、M2.7 |
+| 单卡 RTX 5090 | 5-10人 | 2-3人 | V4-Flash INT4、M2.7 INT4 |
 | ~~4× Mac Studio 512GB~~ | ~~30-50人~~ | ~~15-20人~~ | ❌ 已下架 |
 
 ---
@@ -138,23 +211,34 @@
 
 | 场景 | 推荐方案 | 价格 | 说明 |
 |------|----------|------|------|
-| **GLM-5.1 最佳体验** | **H200 8卡** | **150-230万** | 1128GB大显存，FP8/INT4量化丝滑 |
-| **MiniMax M2.5** | H20 8卡 | 100-140万 | CUDA生态成熟 |
+| **全模型通吃（V4-Pro + K2.6 + GLM-5.1）** | **H200 8卡** | **150-230万** | 1128GB大显存，全部模型FP8量化丝滑 |
+| **DeepSeek V4-Flash 经济部署** | **单卡 RTX 5090** | **~2万** | INT4量化 ~22GB，性价比之王 |
+| **Kimi K2.6 + GLM-5.1 + M2.7** | H20 8卡 | 100-140万 | INT4/FP8 均可，CUDA生态成熟 |
 | **GLM-5.1 W4A8 单机部署** | **Atlas 800T A3** | **80-120万** | 单机 W4A8 量化，>45 tok/s |
-| **国产合规** | Atlas 800 | 80-120万 | GLM原生支持 |
+| **V4-Flash 昇腾部署** | Atlas 800 | 80-120万 | 已有官方部署方案 |
+| **MiniMax M2.7 INT4** | **2× RTX 4090** | **~5万** | INT4 ~50GB，超高性价比 |
 | ~~性价比优先~~ | ~~Mac Studio~~ | ~~22万~~ | ❌ 512GB已下架 |
 
 ### 核心结论
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  150万预算：                                                │
-│  • MiniMax M2.5 ✅ 可行，推荐 H20 或 Atlas 800              │
-│  • GLM-5.1 W4A8 ✅ Atlas 800T A3 单机即可部署 (>45 tok/s)  │
-│  • GLM-5.1 FP8/INT4 ✅ 可行，推荐 H200 或 Atlas 800        │
-│  • GLM-5.1 完整版 ❌ 不可行，需 400万+                      │
-│  • H200 方案 ⚠️ 官方定价 150万，市场价 190-230万            │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  150万预算：                                                         │
+│  • DeepSeek V4-Flash INT4 ✅ 单卡 RTX 5090 (~2万) 即可              │
+│  • DeepSeek V4-Pro INT4 ✅ H200 可行 (~700GB)                       │
+│  • Kimi K2.6 INT4 ✅ 可行，推荐 H200 或 H20                        │
+│  • MiniMax M2.7 INT4 ✅ 双卡 4090 (~5万) 即可                       │
+│  • MiniMax M2.7 FP16 ✅ 可行，推荐 H20 或 Atlas 800                 │
+│  • GLM-5.1 W4A8 ✅ Atlas 800T A3 单机即可部署 (>45 tok/s)           │
+│  • GLM-5.1 FP8/INT4 ✅ 可行，推荐 H200 或 Atlas 800                │
+│  • GLM-5.1 完整版 / V4-Pro FP8 ❌ 需 400万+                        │
+│  • H200 方案 ⚠️ 官方定价 150万，市场价 190-230万                    │
+│                                                                      │
+│  🆕 2026年3-5月新增：                                                │
+│  • DeepSeek V4 (1.6T/284B MoE) — 全系百万token上下文                │
+│  • Kimi K2.6 (1T/32B MoE) — SWE-Bench 并列 GPT-5.5                 │
+│  • MiniMax M2.7 (230B/10B MoE) — 首个"自我进化"模型                 │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -171,6 +255,16 @@
 - [Apple Mac Studio](https://www.apple.com.cn/shop/buy-mac/mac-studio)
 
 ### 技术分析
+- [DeepSeek V4 官方发布](https://api-docs.deepseek.com/zh-cn/news/news260424)
+- [DeepSeek V4 技术报告解读 - 知乎](https://zhuanlan.zhihu.com/p/2031132960632599659)
+- [DeepSeek V4 本地部署方案 - 51CTO](https://www.51cto.com/aigc/11729.html)
+- [DeepSeek V4-Flash 昇腾910B部署 - CSDN](https://deepseek.csdn.net/69ef80070a2f6a37c5a66b18.html)
+- [Kimi K2.6 - HuggingFace](https://huggingface.co/moonshotai/Kimi-K2.6)
+- [Kimi K2.6 官方介绍](https://www.kimi.com/ai-models/kimi-k2-6)
+- [Kimi K2.6 技术分析 - MLQ.ai](https://mlq.ai/news/moonshot-ai-releases-kimi-k26-open-source-coding-model-with-autonomous-multi-day-task-execution/)
+- [MiniMax M2.7 官方发布](https://www.minimaxi.com/news/minimax-m27-zh)
+- [MiniMax M2.7 本地部署指南 - 腾讯云](https://cloud.tencent.com/developer/article/2653788)
+- [MiniMax M2.7 量化版部署 - 知乎](https://zhuanlan.zhihu.com/p/2026750777763309036)
 - [GLM-5.1 发布报道 - 量子位](https://www.qbitai.com/2026/04/397898.html)
 - [GLM-5.1 详解 - CSDN](https://aicoding.csdn.net/69d604970a2f6a37c59dc8e0.html)
 - [GLM-5 技术报告](https://www.53ai.com/news/OpenSourceLLM/2026022239486.html)
@@ -187,3 +281,4 @@
 | 2026-03-20 | 添加华为昇腾详细分析 |
 | 2026-03-23 | **Mac Studio 512GB 已下架**，移除该方案 |
 | 2026-04-10 | **新增 GLM-5.1** 信息，**新增 H200 方案**，新增 nvidia-h200.md |
+| 2026-05-08 | **新增 DeepSeek V4** (V4-Pro 1.6T + V4-Flash 284B)、**Kimi K2.6** (1T MoE)、**MiniMax M2.7** (230B MoE)，全面更新可行性分析和推荐方案 |
